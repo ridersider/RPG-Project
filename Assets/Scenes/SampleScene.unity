@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 18517920}
   - component: {fileID: 18517919}
   - component: {fileID: 18517918}
+  - component: {fileID: 18517923}
   m_Layer: 0
   m_Name: Circle
   m_TagString: Untagged
@@ -151,8 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c2e146d0c5fab74583e8a916e07f9e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController2D
-  moveSpeed: 5
-  playerData: {fileID: 0}
+  playerData: {fileID: 11400000, guid: 2c510da1c8097204395d002633b98d94, type: 2}
 --- !u!114 &18517919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -185,7 +185,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -244,7 +244,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  m_Sprite: {fileID: -4940556997623338620, guid: 10660508070f1cd49a0e97b640e628dd, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -270,6 +270,39 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &18517923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 18517917}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25e3599aa4564fb2a842a70250e55ced, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteAnimator
+  animations:
+  - state: 0
+    frames:
+    - {fileID: -4940556997623338620, guid: 10660508070f1cd49a0e97b640e628dd, type: 3}
+    - {fileID: -2812747494461021604, guid: 194b2bd71eac2bd49b2e8286f67680cd, type: 3}
+    - {fileID: -2812747494461021604, guid: 194b2bd71eac2bd49b2e8286f67680cd, type: 3}
+    - {fileID: -6799115456023281956, guid: f516396f43193394097240768c1f131e, type: 3}
+    - {fileID: -7870494381851903652, guid: 822ceb3afd7a6dd40994156d01312459, type: 3}
+    - {fileID: -7870494381851903652, guid: 822ceb3afd7a6dd40994156d01312459, type: 3}
+    frameTime: 0.15
+  - state: 1
+    frames:
+    - {fileID: 7477926195503609678, guid: bc4c6c41db07e884eb2763a14c7a03bf, type: 3}
+    - {fileID: -5266606329439266722, guid: db9dd42f175f9174793c1b85c72c27ed, type: 3}
+    - {fileID: -3973285251880668989, guid: 18176a6aa606f6e4d9012b70483be20e, type: 3}
+    - {fileID: -6948214254276617396, guid: 6e5a1e76004345b49a55e8d2c8a7a21c, type: 3}
+    - {fileID: 2136690122661882369, guid: c9977dd146f4bfb4eb1ff63822bef782, type: 3}
+    - {fileID: -8538294914296964759, guid: c04bc110a6de4c44984cbe4add0dbfc0, type: 3}
+    - {fileID: 7813688725982291875, guid: defae46c9da22784d8f043838d377c79, type: 3}
+    - {fileID: -8737851724924390372, guid: 5eb869bdab6dc6142818f093d9dba326, type: 3}
+    frameTime: 0.08
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -376,7 +409,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 1.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
