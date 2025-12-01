@@ -361,6 +361,10 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 3697404338119697738, guid: 5e1b3d470b564454db4da46cd757bc9f, type: 3}
+      propertyPath: animations.Array.data[2].uninterruptible
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3697404338119697738, guid: 5e1b3d470b564454db4da46cd757bc9f, type: 3}
       propertyPath: animations.Array.data[2].frames.Array.size
       value: 8
       objectReference: {fileID: 0}

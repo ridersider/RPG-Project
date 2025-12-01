@@ -51,7 +51,7 @@ public class PlayerController2D : MonoBehaviour
         
         if (_isAttacking)
         {
-            _animator.Play(PlayerAnimState.Attack, uninterruptible: true);
+            _animator.Play(PlayerAnimState.Attack);
         }
         else if (_moveInput.sqrMagnitude > 0.01f)
         {

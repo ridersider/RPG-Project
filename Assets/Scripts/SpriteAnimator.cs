@@ -20,7 +20,7 @@ public class SpriteAnimator : MonoBehaviour
         _renderer = GetComponent<SpriteRenderer>();
     }
 
-    public void Play(PlayerAnimState newState = PlayerAnimState.Idle, bool uninterruptible = false)
+    public void Play(PlayerAnimState newState = PlayerAnimState.Idle)
     {
         if (_isLocked) 
             return;
@@ -41,7 +41,7 @@ public class SpriteAnimator : MonoBehaviour
                 _renderer.sprite = _currentFrames[0];
 
                 // Lock aktivieren
-                if (uninterruptible)
+                if (anim.uninterruptible)
                     _isLocked = true;
 
                 return;
@@ -97,6 +97,7 @@ public class AnimSet
     public PlayerAnimState state;
     public Sprite[] frames;
     public float frameTime = 0.15f; // Zeit pro Frame
+    public bool uninterruptible = false;
 }
 
 public enum PlayerAnimState
