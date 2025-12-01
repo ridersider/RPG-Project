@@ -14,8 +14,9 @@ public class PlayerController2D : MonoBehaviour
 
     private Vector2 _moveInput;
     private Vector2 _lastMoveDir = Vector2.right;
-    
+
     private bool _isMoving;
+    private bool _isAttacking;
     
     public PlayerData playerData;
 
@@ -29,7 +30,7 @@ public class PlayerController2D : MonoBehaviour
     private void Start()
     {
         ApplyCharacterDefinition();
-        _animator.Play(PlayerAnimState.Idle);
+        _animator.Play();
     }
 
     public void ApplyCharacterDefinition()
@@ -46,7 +47,13 @@ public class PlayerController2D : MonoBehaviour
         _moveInput.y = Input.GetAxisRaw("Vertical");
         _moveInput = _moveInput.normalized;
 
-        if (_moveInput.sqrMagnitude > 0.01f)
+        _isAttacking = Input.GetKeyDown(KeyCode.Space);
+        
+        if (_isAttacking)
+        {
+            _animator.Play(PlayerAnimState.Attack, uninterruptible: true);
+        }
+        else if (_moveInput.sqrMagnitude > 0.01f)
         {
             _lastMoveDir = _moveInput;
             
@@ -55,7 +62,7 @@ public class PlayerController2D : MonoBehaviour
         }
         else
         {
-            _animator.Play(PlayerAnimState.Idle);
+            _animator.Play();
         }
     }
 

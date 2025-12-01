@@ -13,20 +13,23 @@ public class SpriteAnimator : MonoBehaviour
     private float _frameTime;
     
     private bool _facingRight = true;
+    private bool _isLocked;
 
     private void Awake()
     {
         _renderer = GetComponent<SpriteRenderer>();
     }
 
-    public void Play(PlayerAnimState newState)
+    public void Play(PlayerAnimState newState = PlayerAnimState.Idle, bool uninterruptible = false)
     {
+        if (_isLocked) 
+            return;
+
         if (_currentState == newState)
             return;
 
         _currentState = newState;
 
-        // passende Animation laden
         foreach (var anim in animations)
         {
             if (anim.state == newState)
@@ -36,6 +39,11 @@ public class SpriteAnimator : MonoBehaviour
                 _frameIndex = 0;
                 _timer = 0f;
                 _renderer.sprite = _currentFrames[0];
+
+                // Lock aktivieren
+                if (uninterruptible)
+                    _isLocked = true;
+
                 return;
             }
         }
@@ -51,7 +59,23 @@ public class SpriteAnimator : MonoBehaviour
         if (_timer >= _frameTime)
         {
             _timer -= _frameTime;
-            _frameIndex = (_frameIndex + 1) % _currentFrames.Length;
+
+            // Frame wechseln
+            _frameIndex++;
+
+            // Wenn am Ende angekommen
+            if (_frameIndex >= _currentFrames.Length)
+            {
+                if (_isLocked)
+                {
+                    _frameIndex = _currentFrames.Length - 1; // Letztes Frame halten
+                    _isLocked = false;                       // Lock aufheben
+                    return;                                  // Stoppt Loop
+                } else {
+                    _frameIndex = 0; // Zurück zum ersten Frame
+                }
+            }
+
             _renderer.sprite = _currentFrames[_frameIndex];
         }
     }
@@ -78,5 +102,6 @@ public class AnimSet
 public enum PlayerAnimState
 {
     Idle,
-    Run
+    Run,
+    Attack
 }
