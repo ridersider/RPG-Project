@@ -1,12 +1,11 @@
 using UnityEngine;
-using UnityEngine.Events;
 
 public class Health : MonoBehaviour
 {
     public int maxHealth = 100;
     public int currentHealth;
-
-    public UnityEvent onDeath;
+    
+    public event System.Action<Health> OnDeath;
 
     private void Awake()
     {
@@ -40,8 +39,7 @@ public class Health : MonoBehaviour
 
     private void Die()
     {
-        onDeath?.Invoke();
-        // Fürs Grundgerüst: einfach zerstören
+        OnDeath?.Invoke(this);
         Destroy(gameObject);
     }
 }
