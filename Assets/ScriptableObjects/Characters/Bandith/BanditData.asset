@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8841d71d9aa9d0d449c2bff596cde9b6, type: 3}
+  m_Name: BanditData
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerData
+  moveSpeed: 2
+  maxHealth: 100
+  baseDamage: 10
+  maxMana: 100
+  manaRegenRate: 5
+  abilities:
+  - {fileID: 11400000, guid: e0b33710c38bca5409863f311fd7cd1c, type: 2}
+  attackRange: 1.5
+  attackSpeed: 1
+  abilityKeys: 20000000320000003300000034000000

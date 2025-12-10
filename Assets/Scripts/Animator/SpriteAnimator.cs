@@ -87,7 +87,7 @@ public class SpriteAnimator : MonoBehaviour
         else if (dir.x > 0.01f)
             _facingRight = true;
 
-        _renderer.flipX = _facingRight;
+        _renderer.flipX = !_facingRight;
     }
 }
 

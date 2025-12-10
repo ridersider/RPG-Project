@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf439df2d664083b2a6e6be94acd1d5, type: 3}
+  m_Name: BanditSlash
+  m_EditorClassIdentifier: Assembly-CSharp::MeleeAbility
+  abilityName: Bandit Slash
+  cooldown: 1.5
+  manaCost: 0
+  icon: {fileID: 0}
+  triggerAnimation: 2
+  requiresAiming: 0
+  colliderPrefab: {fileID: 5553746337033382584, guid: 8f56b9f27f40c814496e6b2d2150012d, type: 3}
+  colliderDuration: 0.5
+  colliderOffset: {x: 0, y: 0}
+  damage: 15

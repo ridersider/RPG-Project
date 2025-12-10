@@ -1,79 +1,93 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Health))]
-[RequireComponent(typeof(SpriteAnimator))]
-public class PlayerController2D : MonoBehaviour
+public class PlayerController2D : EntityController2D
 {
-    private float _moveSpeed = 5f;
-
-    private Rigidbody2D _rb;
-    private Health _health;
-    private SpriteAnimator _animator;
-
-    private Vector2 _moveInput;
-    private Vector2 _lastMoveDir = Vector2.right;
-
-    private bool _isMoving;
-    private bool _isAttacking;
+    private Camera mainCamera;
     
-    public PlayerData playerData;
-
-    private void Awake()
+    protected override void Start()
     {
-        _rb = GetComponent<Rigidbody2D>();
-        _health = GetComponent<Health>();
-        _animator = GetComponent<SpriteAnimator>();
-    }
-
-    private void Start()
-    {
-        ApplyCharacterDefinition();
-        _animator.Play();
-    }
-
-    public void ApplyCharacterDefinition()
-    {
-        if (playerData == null) return;
-
-        _moveSpeed = playerData.moveSpeed;
-        _health.Initialize(playerData.maxHealth);
-    }
-
-    private void Update()
-    {
-        _moveInput.x = Input.GetAxisRaw("Horizontal");
-        _moveInput.y = Input.GetAxisRaw("Vertical");
-        _moveInput = _moveInput.normalized;
-
-        _isAttacking = Input.GetKeyDown(KeyCode.Space);
+        base.Start();
+        mainCamera = Camera.main;
         
-        if (_isAttacking)
+        // Player is always on team "Player"
+        gameObject.tag = "Player";
+        gameObject.layer = LayerMask.NameToLayer("Player");
+    }
+    
+    protected override void Update()
+    {
+        base.Update();
+        HandlePlayerInput();
+    }
+    
+    private void HandlePlayerInput()
+    {
+        // Movement input
+        moveInput.x = Input.GetAxisRaw("Horizontal");
+        moveInput.y = Input.GetAxisRaw("Vertical");
+        moveInput = moveInput.normalized;
+        
+        // Combat input
+        if (moveInput.sqrMagnitude > 0.01f)
+            lastMoveDir = moveInput;
+    }
+    
+    protected override void HandleMovement()
+    {
+        if (currentState == EntityState.Dead) return;
+        rb.linearVelocity = moveInput * entityData.moveSpeed;
+    }
+    
+    protected override void HandleCombatInput()
+    {
+        if (currentState == EntityState.Dead) return;
+        
+        // Ability Keys
+        if (entityData?.abilityKeys != null)
         {
-            _animator.Play(PlayerAnimState.Attack);
+            for (int i = 0; i < Mathf.Min(entityData.abilityKeys.Length, equippedAbilities.Count); i++)
+            {
+                if (Input.GetKeyDown(entityData.abilityKeys[i]))
+                {
+                    Vector2 aimDir = GetAimDirection();
+                    
+                    // Mouse aiming für zielgerichtete Abilities
+                    if (equippedAbilities[i].requiresAiming)
+                    {
+                        Vector2 mousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+                        aimDir = (mousePos - (Vector2)transform.position).normalized;
+                        LookAt(mousePos);
+                    }
+                    
+                    TryUseAbility(i, aimDir);
+                }
+            }
         }
-        else if (_moveInput.sqrMagnitude > 0.01f)
+    }
+    
+    public override Vector2 GetAimDirection()
+    {
+        // Mouse Aiming hat Priorität
+        if (mainCamera != null)
         {
-            _lastMoveDir = _moveInput;
+            Vector2 mousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 mouseDir = (mousePos - (Vector2)transform.position).normalized;
             
-            _animator.SetFacingDirection(_lastMoveDir);
-            _animator.Play(PlayerAnimState.Run);
+            // Nur wenn Maus bewegt wurde oder geklickt wurde
+            if (mouseDir.sqrMagnitude > 0.01f)
+                return mouseDir;
         }
-        else
-        {
-            _animator.Play();
-        }
+        
+        // Fallback: Bewegung oder letzte Richtung
+        return base.GetAimDirection();
     }
-
-    private void FixedUpdate()
+    
+    public void LookAt(Vector2 position)
     {
-        _rb.linearVelocity = _moveInput * _moveSpeed;
-    }
-
-    public Vector2 GetAimDirection()
-    {
-        // Im Grundgerüst: Aim = Lauf-Richtung
-        return _lastMoveDir.sqrMagnitude > 0.01f ? _lastMoveDir : Vector2.right;
+        Vector2 direction = (position - (Vector2)transform.position).normalized;
+        lastMoveDir = direction;
+        
+        if (animator != null)
+            animator.SetFacingDirection(direction);
     }
 }

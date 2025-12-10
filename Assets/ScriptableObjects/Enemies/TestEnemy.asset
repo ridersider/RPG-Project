@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 878f3bee866a45fbac491d02173a3bf3, type: 3}
+  m_Name: TestEnemy
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  moveSpeed: 5
+  maxHealth: 100
+  baseDamage: 10
+  maxMana: 100
+  manaRegenRate: 5
+  abilities: []
+  attackRange: 1.5
+  attackSpeed: 1
+  abilityKeys: 31000000320000003300000034000000
+  detectionRange: 10
+  attackRange: 2
+  chaseSpeedMultiplier: 1.2
+  isAggressive: 1
+  canWander: 1
+  attackCooldown: 1
+  attackDamage: 10
+  usesAbilities: 0
+  experienceReward: 10
+  lootDrops: []
+  dropChance: 0.3
