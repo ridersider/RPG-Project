@@ -1,0 +1,1719 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+Abilities.meta
+Abilities/Ability.cs
+Abilities/Ability.cs.meta
+Abilities/DamageCollider.cs
+Abilities/DamageCollider.cs.meta
+Abilities/HealAbility.cs
+Abilities/HealAbility.cs.meta
+Abilities/MeleeAbility.cs
+Abilities/MeleeAbility.cs.meta
+Abilities/Projectile.cs
+Abilities/Projectile.cs.meta
+Abilities/ProjectileAbility.cs
+Abilities/ProjectileAbility.cs.meta
+Animator.meta
+Animator/SpriteAnimator.cs
+Animator/SpriteAnimator.cs.meta
+Core.meta
+Core/EntityController2D.cs
+Core/EntityController2D.cs.meta
+Core/EntityState.cs
+Core/EntityState.cs.meta
+Enemy.meta
+Enemy/EnemyController2D.cs
+Enemy/EnemyController2D.cs.meta
+Enemy/EnemyData.cs
+Enemy/EnemyData.cs.meta
+Enemy/EnemySpawner.cs
+Enemy/EnemySpawner.cs.meta
+Player.meta
+Player/EntityData.meta
+Player/EntityData/EntityData.cs
+Player/EntityData/EntityData.cs.meta
+Player/EntityData/PlayerData.meta
+Player/EntityData/PlayerData/BandithData.cs
+Player/EntityData/PlayerData/BandithData.cs.meta
+Player/EntityData/PlayerData/MageData.cs
+Player/EntityData/PlayerData/MageData.cs.meta
+Player/Health.cs
+Player/Health.cs.meta
+Player/PlayerCombatController.cs
+Player/PlayerCombatController.cs.meta
+Player/PlayerController2D.cs
+Player/PlayerController2D.cs.meta
+Player/PlayerPresets.meta
+repomix-output.xml.meta
+Terrain.meta
+Terrain/TerrainGenerator.cs
+Terrain/TerrainGenerator.cs.meta
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="Abilities.meta">
+fileFormatVersion: 2
+guid: 3a41b21f5a405584cae226c66a64bfc2
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant:
+</file>
+
+<file path="Abilities/Ability.cs">
+using UnityEngine;
+using UnityEngine.Events;
+
+public abstract class Ability : ScriptableObject
+{
+    public string abilityName;
+    public float cooldown = 1f;
+    public float manaCost = 10f;
+    public Sprite icon;
+    
+    [Header("Animation")]
+    public PlayerAnimState triggerAnimation;
+    public bool requiresAiming = false;
+    
+    [Header("Events")]
+    public UnityEvent onAbilityStart;
+    public UnityEvent onAbilityHit;
+    public UnityEvent onAbilityEnd;
+    
+    [Header("Collider Configuration")]
+    public GameObject colliderPrefab; // Prefab mit Collider2D
+    public float colliderDuration = 0.5f;
+    public Vector2 colliderOffset = Vector2.zero;
+    
+    public abstract void Activate(GameObject owner, Vector2 direction);
+    public abstract void Deactivate();
+    
+    public virtual bool CanActivate(GameObject owner)
+    {
+        // Check cooldown, mana, etc.
+        return true;
+    }
+}
+</file>
+
+<file path="Abilities/Ability.cs.meta">
+fileFormatVersion: 2
+guid: 0e847c8e47c4eee4589ada4cb2b8902e
+</file>
+
+<file path="Abilities/DamageCollider.cs">
+using UnityEngine;
+
+public class DamageCollider : MonoBehaviour
+{
+    public float damage = 10f;
+    public GameObject owner;
+    public LayerMask targetLayers;
+    
+    private float duration;
+    
+    public void SetDamage(float dmg, GameObject own)
+    {
+        damage = dmg;
+        owner = own;
+    }
+    
+    public void SetDuration(float dur)
+    {
+        duration = dur;
+        Destroy(gameObject, dur);
+    }
+    
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (owner != null && other.gameObject == owner) return;
+        
+        if (((1 << other.gameObject.layer) & targetLayers) != 0)
+        {
+            Health health = other.GetComponent<Health>();
+            if (health != null)
+            {
+                health.TakeDamage((int)damage);
+                
+                // Trigger hit events
+                //Ability ability = GetComponent<Ability>();
+                //if (ability != null)
+                //{
+                //    ability.onAbilityHit?.Invoke();
+                //}
+            }
+        }
+    }
+}
+</file>
+
+<file path="Abilities/DamageCollider.cs.meta">
+fileFormatVersion: 2
+guid: 9ca2c37747864a8cac7dcadfbba5fba5
+timeCreated: 1765308660
+</file>
+
+<file path="Abilities/HealAbility.cs">
+using UnityEngine;
+using UnityEngine.Events;
+
+[CreateAssetMenu(fileName = "NewHealAbility", menuName = "Abilities/Heal")]
+public class HealAbility : Ability
+{
+    public float healAmount = 30f;
+    public bool healOverTime = false;
+    public float healDuration = 3f;
+    
+    public override void Activate(GameObject owner, Vector2 direction)
+    {
+        onAbilityStart?.Invoke();
+        
+        Health health = owner.GetComponent<Health>();
+        if (health != null)
+        {
+            if (healOverTime)
+            {
+                // Start coroutine for heal over time
+                owner.GetComponent<MonoBehaviour>().StartCoroutine(HealOverTime(health));
+            }
+            else
+            {
+                health.Heal((int)healAmount);
+                onAbilityHit?.Invoke(); // Heal counts as "hit"
+            }
+        }
+    }
+    
+    private System.Collections.IEnumerator HealOverTime(Health health)
+    {
+        float healPerTick = healAmount / (healDuration * 10);
+        for (int i = 0; i < healDuration * 10; i++)
+        {
+            health.Heal((int)healPerTick);
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
+
+    public override void Deactivate()
+    {
+        // No specific deactivation needed for heal ability
+    }
+}
+</file>
+
+<file path="Abilities/HealAbility.cs.meta">
+fileFormatVersion: 2
+guid: 69c0dde9e2f54e9196b2ca9bb1010d36
+timeCreated: 1765306465
+</file>
+
+<file path="Abilities/MeleeAbility.cs">
+using UnityEngine;
+using UnityEngine.Events;
+
+[CreateAssetMenu(fileName = "NewMeleeAbility", menuName = "Abilities/Melee")]
+public class MeleeAbility : Ability
+{
+    public float damage = 15f;
+    
+    private GameObject activeCollider;
+    
+    public override void Activate(GameObject owner, Vector2 direction)
+    {
+        onAbilityStart?.Invoke();
+        
+        // Activate collider on owner
+        if (colliderPrefab != null)
+        {
+            activeCollider = Instantiate(colliderPrefab, owner.transform);
+            activeCollider.transform.localPosition = colliderOffset;
+            
+            // Rotate collider towards direction
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            activeCollider.transform.rotation = Quaternion.Euler(0, 0, angle);
+            
+            // Set damage
+            DamageCollider dmgCollider = activeCollider.GetComponent<DamageCollider>();
+            if (dmgCollider != null)
+            {
+                dmgCollider.SetDamage(damage, owner);
+                dmgCollider.SetDuration(colliderDuration);
+            }
+            
+            // Auto-destroy
+            Destroy(activeCollider, colliderDuration);
+        }
+    }
+    
+    public override void Deactivate()
+    {
+        if (activeCollider != null)
+            Destroy(activeCollider);
+    }
+}
+</file>
+
+<file path="Abilities/MeleeAbility.cs.meta">
+fileFormatVersion: 2
+guid: dbf439df2d664083b2a6e6be94acd1d5
+timeCreated: 1765306772
+</file>
+
+<file path="Abilities/Projectile.cs">
+using UnityEngine;
+
+public class Projectile : MonoBehaviour
+{
+    public Vector2 velocity;
+    public float damage;
+    public GameObject owner;
+    public float lifetime = 3f;
+    
+    public void Initialize(Vector2 vel, float dmg, GameObject own)
+    {
+        velocity = vel;
+        damage = dmg;
+        owner = own;
+        Destroy(gameObject, lifetime);
+    }
+    
+    private void Update()
+    {
+        transform.position += (Vector3)velocity * Time.deltaTime;
+    }
+    
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (owner != null && other.gameObject == owner) return;
+        
+        Health health = other.GetComponent<Health>();
+        if (health != null)
+        {
+            health.TakeDamage((int)damage);
+            Destroy(gameObject);
+        }
+    }
+}
+</file>
+
+<file path="Abilities/Projectile.cs.meta">
+fileFormatVersion: 2
+guid: 7e1bbb800f8b43e79f14635c86cd4907
+timeCreated: 1765308679
+</file>
+
+<file path="Abilities/ProjectileAbility.cs">
+using UnityEngine;
+using UnityEngine.Events;
+
+[CreateAssetMenu(fileName = "NewProjectileAbility", menuName = "Abilities/Projectile")]
+public class ProjectileAbility : Ability
+{
+    public GameObject projectilePrefab;
+    public float projectileSpeed = 10f;
+    public float damage = 20f;
+    
+    public override void Activate(GameObject owner, Vector2 direction)
+    {
+        onAbilityStart?.Invoke();
+        
+        // Spawn projectile
+        if (projectilePrefab != null)
+        {
+            Vector3 spawnPos = owner.transform.position + 
+                               (Vector3)colliderOffset + 
+                               (Vector3)direction.normalized * 0.5f;
+            
+            GameObject projectile = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
+            Projectile projScript = projectile.GetComponent<Projectile>();
+            if (projScript != null)
+            {
+                projScript.Initialize(direction.normalized * projectileSpeed, damage, owner);
+            }
+        }
+    }
+    
+    public override void Deactivate() { }
+}
+</file>
+
+<file path="Abilities/ProjectileAbility.cs.meta">
+fileFormatVersion: 2
+guid: ef355cd1a2a04951b776996e773de6b8
+timeCreated: 1765306388
+</file>
+
+<file path="Animator.meta">
+fileFormatVersion: 2
+guid: d11944ae728f48a887956b2f8c88dff2
+timeCreated: 1765305781
+</file>
+
+<file path="Animator/SpriteAnimator.cs">
+using UnityEngine;
+
+public class SpriteAnimator : MonoBehaviour
+{
+    public AnimSet[] animations;
+
+    private SpriteRenderer _renderer;
+    private PlayerAnimState _currentState;
+    private Sprite[] _currentFrames;
+
+    private int _frameIndex;
+    private float _timer;
+    private float _frameTime;
+    
+    private bool _facingRight = true;
+    private bool _isLocked;
+
+    private void Awake()
+    {
+        _renderer = GetComponent<SpriteRenderer>();
+    }
+
+    public void Play(PlayerAnimState newState = PlayerAnimState.Idle)
+    {
+        if (_isLocked) 
+            return;
+
+        if (_currentState == newState)
+            return;
+
+        _currentState = newState;
+
+        foreach (var anim in animations)
+        {
+            if (anim.state == newState)
+            {
+                _currentFrames = anim.frames;
+                _frameTime = anim.frameTime;
+                _frameIndex = 0;
+                _timer = 0f;
+                _renderer.sprite = _currentFrames[0];
+
+                // Lock aktivieren
+                if (anim.uninterruptible)
+                    _isLocked = true;
+
+                return;
+            }
+        }
+    }
+
+    private void Update()
+    {
+        if (_currentFrames == null || _currentFrames.Length == 0)
+            return;
+
+        _timer += Time.deltaTime;
+
+        if (_timer >= _frameTime)
+        {
+            _timer -= _frameTime;
+
+            // Frame wechseln
+            _frameIndex++;
+
+            // Wenn am Ende angekommen
+            if (_frameIndex >= _currentFrames.Length)
+            {
+                if (_isLocked)
+                {
+                    _frameIndex = _currentFrames.Length - 1; // Letztes Frame halten
+                    _isLocked = false;                       // Lock aufheben
+                    return;                                  // Stoppt Loop
+                } else {
+                    _frameIndex = 0; // Zurück zum ersten Frame
+                }
+            }
+
+            _renderer.sprite = _currentFrames[_frameIndex];
+        }
+    }
+    
+    public void SetFacingDirection(Vector2 dir)
+    {
+        if (dir.x < -0.01f)
+            _facingRight = false;
+        else if (dir.x > 0.01f)
+            _facingRight = true;
+
+        _renderer.flipX = !_facingRight;
+    }
+}
+
+[System.Serializable]
+public class AnimSet
+{
+    public PlayerAnimState state;
+    public Sprite[] frames;
+    public float frameTime = 0.15f; // Zeit pro Frame
+    public bool uninterruptible = false;
+}
+
+public enum PlayerAnimState
+{
+    Idle,
+    Run,
+    Attack
+}
+</file>
+
+<file path="Animator/SpriteAnimator.cs.meta">
+fileFormatVersion: 2
+guid: 25e3599aa4564fb2a842a70250e55ced
+timeCreated: 1764098352
+</file>
+
+<file path="Core.meta">
+fileFormatVersion: 2
+guid: 0c3a3ff95fed4ba6962cfc991225048d
+timeCreated: 1765308420
+</file>
+
+<file path="Core/EntityController2D.cs">
+// Core/EntityController2D.cs
+using UnityEngine;
+using System.Collections.Generic;
+
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Health))]
+[RequireComponent(typeof(SpriteAnimator))]
+public abstract class EntityController2D : MonoBehaviour
+{
+    [Header("Entity Components")]
+    [SerializeField] protected EntityData entityData;
+    protected Rigidbody2D rb;
+    protected Health health;
+    protected SpriteAnimator animator;
+    
+    [Header("Movement")]
+    protected Vector2 moveInput;
+    protected Vector2 lastMoveDir = Vector2.right;
+    protected bool isMoving;
+    protected bool isAttacking;
+    
+    [Header("Combat")]
+    protected List<Ability> equippedAbilities = new List<Ability>();
+    protected float attackCooldownTimer;
+    protected Transform target;
+    
+    [Header("State")]
+    public EntityState currentState = EntityState.Idle;
+    
+    // Events
+    public System.Action<EntityController2D> OnDeath;
+    public System.Action<Ability> OnAbilityUsed;
+    
+    protected virtual void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        health = GetComponent<Health>();
+        animator = GetComponent<SpriteAnimator>();
+        
+        // Health events
+        health.onDeath.AddListener(HandleDeath);
+    }
+    
+    protected virtual void Start()
+    {
+        if (entityData != null)
+        {
+            health.Initialize(entityData.maxHealth);
+            
+            // Load abilities from entity data
+            if (entityData.abilities != null)
+            {
+                equippedAbilities = new List<Ability>(entityData.abilities);
+            }
+        }
+    }
+    
+    protected virtual void Update()
+    {
+        UpdateCooldowns();
+        UpdateAnimation();
+    }
+    
+    protected virtual void FixedUpdate()
+    {
+        HandleMovement();
+    }
+    
+    // ===== ABSTRACT METHODS =====
+    protected abstract void HandleMovement();
+    protected abstract void HandleCombatInput();
+    
+    // ===== SHARED METHODS =====
+    protected virtual void UpdateCooldowns()
+    {
+        if (attackCooldownTimer > 0)
+            attackCooldownTimer -= Time.deltaTime;
+    }
+    
+    protected virtual void UpdateAnimation()
+    {
+        if (animator == null) return;
+        
+        if (isAttacking)
+        {
+            animator.Play(PlayerAnimState.Attack);
+        }
+        else if (moveInput.sqrMagnitude > 0.01f)
+        {
+            lastMoveDir = moveInput;
+            animator.SetFacingDirection(lastMoveDir);
+            animator.Play(PlayerAnimState.Run);
+        }
+        else
+        {
+            animator.Play(PlayerAnimState.Idle);
+        }
+    }
+    
+    public virtual bool TryUseAbility(int abilityIndex, Vector2 direction)
+    {
+        if (abilityIndex < 0 || abilityIndex >= equippedAbilities.Count)
+            return false;
+            
+        if (attackCooldownTimer > 0)
+            return false;
+            
+        Ability ability = equippedAbilities[abilityIndex];
+        
+        if (ability != null && ability.CanActivate(gameObject))
+        {
+            ability.Activate(gameObject, direction);
+            attackCooldownTimer = ability.cooldown;
+            
+            OnAbilityUsed?.Invoke(ability);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    public virtual Vector2 GetAimDirection()
+    {
+        if (target != null)
+        {
+            // Aim at target
+            return (target.position - transform.position).normalized;
+        }
+        
+        return lastMoveDir.sqrMagnitude > 0.01f ? lastMoveDir : Vector2.right;
+    }
+
+    public virtual void SetAimDirection(Vector2 dir)
+    {
+        
+    }
+    
+    public virtual void SetTarget(Transform newTarget)
+    {
+        target = newTarget;
+    }
+    
+    public virtual bool HasTarget()
+    {
+        return target != null;
+    }
+    
+    public virtual float DistanceToTarget()
+    {
+        if (target == null) return Mathf.Infinity;
+        return Vector2.Distance(transform.position, target.position);
+    }
+    
+    protected virtual void HandleDeath()
+    {
+        currentState = EntityState.Dead;
+        OnDeath?.Invoke(this);
+        
+        // Disable components
+        rb.simulated = false;
+        enabled = false;
+    }
+    
+    // ===== PUBLIC API =====
+    public void MoveTowards(Vector2 position, float speedMultiplier = 1f)
+    {
+        Vector2 direction = (position - (Vector2)transform.position).normalized;
+        moveInput = direction;
+        
+        if (rb != null)
+        {
+            rb.linearVelocity = direction * entityData.moveSpeed * speedMultiplier;
+        }
+    }
+    
+    public void StopMovement()
+    {
+        moveInput = Vector2.zero;
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+        }
+    }
+    
+    public bool IsInRange(float range)
+    {
+        return DistanceToTarget() <= range;
+    }
+    
+    public void LookAt(Vector2 position)
+    {
+        Vector2 direction = (position - (Vector2)transform.position).normalized;
+        lastMoveDir = direction;
+        
+        if (animator != null)
+        {
+            animator.SetFacingDirection(direction);
+        }
+    }
+    
+    public EntityData GetEntityData()
+    {
+        return entityData;
+    }
+}
+</file>
+
+<file path="Core/EntityController2D.cs.meta">
+fileFormatVersion: 2
+guid: 6a2b3ce550de4735b725e0978cfef32d
+timeCreated: 1765308851
+</file>
+
+<file path="Core/EntityState.cs">
+public enum EntityState
+{
+    Idle,
+    Moving,
+    Attacking,
+    Dead,
+    Stunned
+}
+</file>
+
+<file path="Core/EntityState.cs.meta">
+fileFormatVersion: 2
+guid: 18f4c48019454e568b7b5d276a70fcf8
+timeCreated: 1765308477
+</file>
+
+<file path="Enemy.meta">
+fileFormatVersion: 2
+guid: e64657f859f04c0ab4f0eb79c006ec9b
+timeCreated: 1765308936
+</file>
+
+<file path="Enemy/EnemyController2D.cs">
+using System.Collections;
+using UnityEngine;
+
+public class EnemyController2D : EntityController2D
+{
+    [Header("AI Settings")]
+    [SerializeField] private float detectionRange = 10f;
+    [SerializeField] private float attackRange = 2f;
+    [SerializeField] private float wanderRadius = 5f;
+    [SerializeField] private float wanderInterval = 3f;
+    [SerializeField] private LayerMask targetLayer = 1 << 6; // Player layer
+    
+    [Header("Behavior")]
+    [SerializeField] private bool isAggressive = true;
+    [SerializeField] private bool canWander = true;
+    [SerializeField] private bool usePathfinding = false;
+    
+    private Vector2 wanderCenter;
+    private Vector2 wanderTarget;
+    private float stateTimer;
+    private float idleTimer;
+    
+    // AI States
+    private AIState aiState = AIState.Idle;
+    
+    protected override void Start()
+    {
+        base.Start();
+        
+        // Enemy setup
+        gameObject.tag = "Enemy";
+        gameObject.layer = LayerMask.NameToLayer("Enemy");
+        
+        wanderCenter = transform.position;
+        
+        // Start AI routine
+        StartCoroutine(AIUpdateRoutine());
+    }
+    
+    protected override void Update()
+    {
+        base.Update();
+        
+        // Update timers
+        if (stateTimer > 0) stateTimer -= Time.deltaTime;
+        if (idleTimer > 0) idleTimer -= Time.deltaTime;
+    }
+    
+    protected override void HandleMovement()
+    {
+        if (currentState == EntityState.Dead) return;
+        
+        switch (aiState)
+        {
+            case AIState.Chasing:
+                if (target != null)
+                {
+                    MoveTowards(target.position);
+                    LookAt(target.position);
+                }
+                break;
+                
+            case AIState.Wandering:
+                MoveTowards(wanderTarget);
+                if (Vector2.Distance(transform.position, wanderTarget) < 0.5f)
+                {
+                    SetAIState(AIState.Idle);
+                }
+                break;
+                
+            case AIState.Attacking:
+                StopMovement();
+                LookAt(target.position);
+                break;
+                
+            case AIState.Idle:
+                StopMovement();
+                break;
+        }
+    }
+    
+    protected override void HandleCombatInput()
+    {
+        // AI-controlled combat
+        if (aiState == AIState.Attacking && attackCooldownTimer <= 0)
+        {
+            // Use basic attack if in range
+            if (IsInRange(attackRange))
+            {
+                TryUseAbility(0, GetAimDirection());
+            }
+        }
+    }
+    
+    private IEnumerator AIUpdateRoutine()
+    {
+        while (currentState != EntityState.Dead)
+        {
+            UpdateAI();
+            yield return new WaitForSeconds(0.2f); // 5 Hz update rate
+        }
+    }
+    
+    private void UpdateAI()
+    {
+        // Check for targets
+        FindNearestTarget();
+        
+        // State transitions
+        switch (aiState)
+        {
+            case AIState.Idle:
+                HandleIdleState();
+                break;
+                
+            case AIState.Wandering:
+                HandleWanderState();
+                break;
+                
+            case AIState.Chasing:
+                HandleChaseState();
+                break;
+                
+            case AIState.Attacking:
+                HandleAttackState();
+                break;
+                
+            case AIState.Fleeing:
+                HandleFleeState();
+                break;
+        }
+    }
+    
+    private void FindNearestTarget()
+    {
+        if (!isAggressive) return;
+        
+        Collider2D[] potentialTargets = Physics2D.OverlapCircleAll(
+            transform.position, 
+            detectionRange, 
+            targetLayer
+        );
+        
+        float closestDistance = Mathf.Infinity;
+        Transform closestTarget = null;
+        
+        foreach (var potentialTarget in potentialTargets)
+        {
+            float distance = Vector2.Distance(transform.position, potentialTarget.transform.position);
+            
+            // Line of sight check (optional)
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestTarget = potentialTarget.transform;
+            }
+        }
+        
+        target = closestTarget;
+    }
+    
+    private void HandleIdleState()
+    {
+        if (target != null)
+        {
+            SetAIState(AIState.Chasing);
+            return;
+        }
+        
+        if (canWander && idleTimer <= 0)
+        {
+            // Start wandering
+            SetWanderTarget();
+            SetAIState(AIState.Wandering);
+            idleTimer = wanderInterval;
+        }
+        
+        if (stateTimer <= 0)
+        {
+            stateTimer = Random.Range(1f, 3f);
+        }
+    }
+    
+    private void HandleWanderState()
+    {
+        if (target != null)
+        {
+            SetAIState(AIState.Chasing);
+            return;
+        }
+        
+        if (Vector2.Distance(transform.position, wanderTarget) < 0.5f)
+        {
+            SetAIState(AIState.Idle);
+        }
+    }
+    
+    private void HandleChaseState()
+    {
+        if (target == null)
+        {
+            SetAIState(AIState.Idle);
+            return;
+        }
+        
+        float distance = DistanceToTarget();
+        
+        if (distance <= attackRange)
+        {
+            SetAIState(AIState.Attacking);
+        }
+        else if (distance > detectionRange * 1.5f)
+        {
+            // Lost target
+            target = null;
+            SetAIState(AIState.Idle);
+        }
+    }
+    
+    private void HandleAttackState()
+    {
+        if (target == null)
+        {
+            SetAIState(AIState.Idle);
+            return;
+        }
+        
+        float distance = DistanceToTarget();
+        
+        if (distance > attackRange * 1.2f)
+        {
+            // Target moved away
+            SetAIState(AIState.Chasing);
+        }
+        else if (distance < attackRange * 0.8f)
+        {
+            // Too close, maybe move back
+            // Optional: add a backing away behavior
+        }
+        
+        // Try to attack
+        if (attackCooldownTimer <= 0)
+        {
+            isAttacking = true;
+            TryUseAbility(0, GetAimDirection());
+            
+            // Reset attack flag after animation
+            StartCoroutine(ResetAttackFlag(0.5f));
+        }
+    }
+    
+    private void HandleFleeState()
+    {
+        // Flee from target
+        if (target != null)
+        {
+            Vector2 fleeDirection = (transform.position - target.position).normalized;
+            MoveTowards((Vector2)transform.position + fleeDirection * 5f);
+        }
+        
+        if (stateTimer <= 0)
+        {
+            SetAIState(AIState.Idle);
+        }
+    }
+    
+    private void SetWanderTarget()
+    {
+        wanderTarget = wanderCenter + Random.insideUnitCircle * wanderRadius;
+    }
+    
+    private void SetAIState(AIState newState)
+    {
+        if (aiState == newState) return;
+        
+        // Exit previous state
+        switch (aiState)
+        {
+            case AIState.Attacking:
+                isAttacking = false;
+                break;
+        }
+        
+        // Enter new state
+        aiState = newState;
+        
+        switch (aiState)
+        {
+            case AIState.Idle:
+                stateTimer = Random.Range(2f, 5f);
+                break;
+                
+            case AIState.Wandering:
+                stateTimer = 10f; // Max wander time
+                break;
+                
+            case AIState.Chasing:
+                stateTimer = 20f; // Max chase time
+                break;
+                
+            case AIState.Attacking:
+                stateTimer = 3f; // Max attack time before re-evaluating
+                break;
+                
+            case AIState.Fleeing:
+                stateTimer = 5f; // Flee duration
+                break;
+        }
+    }
+    
+    private IEnumerator ResetAttackFlag(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        isAttacking = false;
+    }
+    
+    // Gizmos for debugging
+    private void OnDrawGizmosSelected()
+    {
+        // Detection range
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, detectionRange);
+        
+        // Attack range
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
+        
+        // Wander area
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(Application.isPlaying ? wanderCenter : transform.position, wanderRadius);
+        
+        // Current target
+        if (target != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, target.position);
+        }
+    }
+}
+
+public enum AIState
+{
+    Idle,
+    Wandering,
+    Chasing,
+    Attacking,
+    Fleeing,
+    Patrolling
+}
+</file>
+
+<file path="Enemy/EnemyController2D.cs.meta">
+fileFormatVersion: 2
+guid: 0de4ca47b9f24946833b315bcdc69814
+timeCreated: 1765308986
+</file>
+
+<file path="Enemy/EnemyData.cs">
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "EnemyData", menuName = "ScriptableObjects/EnemyData")]
+public class EnemyData : EntityData
+{
+    [Header("AI Behavior")]
+    public float detectionRange = 10f;
+    public float attackRange = 2f;
+    public float chaseSpeedMultiplier = 1.2f;
+    public bool isAggressive = true;
+    public bool canWander = true;
+    
+    [Header("Combat Behavior")]
+    public float attackCooldown = 1f;
+    public int attackDamage = 10;
+    public bool usesAbilities = false;
+    
+    [Header("Loot")]
+    public int experienceReward = 10;
+    public GameObject[] lootDrops;
+    public float dropChance = 0.3f;
+}
+</file>
+
+<file path="Enemy/EnemyData.cs.meta">
+fileFormatVersion: 2
+guid: 878f3bee866a45fbac491d02173a3bf3
+timeCreated: 1765309000
+</file>
+
+<file path="Enemy/EnemySpawner.cs">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class EnemySpawner : MonoBehaviour
+{
+    [System.Serializable]
+    public class SpawnWave
+    {
+        public EnemyData enemyType;
+        public int count;
+        public float delayBetweenSpawns = 1f;
+    }
+    
+    [SerializeField] private List<SpawnWave> waves = new List<SpawnWave>();
+    [SerializeField] private float spawnRadius = 5f;
+    [SerializeField] private bool spawnOnStart = true;
+    [SerializeField] private Transform targetOverride; // Optional player override
+    
+    private List<EnemyController2D> activeEnemies = new List<EnemyController2D>();
+    
+    private void Start()
+    {
+        if (spawnOnStart)
+        {
+            SpawnWaveImmediate(0);
+        }
+    }
+    
+    public void SpawnWaveImmediate(int waveIndex)
+    {
+        if (waveIndex < 0 || waveIndex >= waves.Count) return;
+        
+        SpawnWave wave = waves[waveIndex];
+        StartCoroutine(SpawnWaveRoutine(wave));
+    }
+    
+    private IEnumerator SpawnWaveRoutine(SpawnWave wave)
+    {
+        for (int i = 0; i < wave.count; i++)
+        {
+            SpawnEnemy(wave.enemyType);
+            yield return new WaitForSeconds(wave.delayBetweenSpawns);
+        }
+    }
+    
+    public EnemyController2D SpawnEnemy(EnemyData enemyData)
+    {
+        Vector2 spawnPos = (Vector2)transform.position + Random.insideUnitCircle * spawnRadius;
+        
+        //ToDo: Use object pooling in a real project
+        // Create enemy GameObject
+        GameObject enemyObj = new GameObject($"Enemy_{enemyData.name}");
+        enemyObj.transform.position = spawnPos;
+        
+        // Add required components
+        enemyObj.AddComponent<Rigidbody2D>();
+        enemyObj.AddComponent<Health>();
+        enemyObj.AddComponent<SpriteAnimator>();
+        
+        // Add enemy controller
+        EnemyController2D enemy = enemyObj.AddComponent<EnemyController2D>();
+        
+        // Set data
+        // Note: In practice, you'd use a prefab system
+        
+        // Set target (find player if not overridden)
+        if (targetOverride == null)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                enemy.SetTarget(player.transform);
+            }
+        }
+        else
+        {
+            enemy.SetTarget(targetOverride);
+        }
+        
+        // Register for death event
+        enemy.OnDeath += HandleEnemyDeath;
+        
+        activeEnemies.Add(enemy);
+        return enemy;
+    }
+    
+    private void HandleEnemyDeath(EntityController2D enemy)
+    {
+        activeEnemies.Remove(enemy as EnemyController2D);
+        
+        // Handle loot drops, experience, etc.
+        EnemyData enemyData = (enemy as EnemyController2D).GetEntityData() as EnemyData;
+        if (enemyData != null)
+        {
+            // Drop loot
+            if (Random.value < enemyData.dropChance && enemyData.lootDrops.Length > 0)
+            {
+                GameObject loot = enemyData.lootDrops[Random.Range(0, enemyData.lootDrops.Length)];
+                Instantiate(loot, enemy.transform.position, Quaternion.identity);
+            }
+        }
+    }
+}
+</file>
+
+<file path="Enemy/EnemySpawner.cs.meta">
+fileFormatVersion: 2
+guid: 7b26da04e02040af8b5251d725acf2c6
+timeCreated: 1765309013
+</file>
+
+<file path="Player.meta">
+fileFormatVersion: 2
+guid: df9d7de47f6d04142ac0892a3eeef42e
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant:
+</file>
+
+<file path="Player/EntityData.meta">
+fileFormatVersion: 2
+guid: fdbc01b7e419416a97c053ec246d4a77
+timeCreated: 1765305584
+</file>
+
+<file path="Player/EntityData/EntityData.cs">
+using UnityEngine;
+using System.Collections.Generic;
+
+[CreateAssetMenu(fileName = "EntityData", menuName = "ScriptableObjects/EntityData")]
+public class EntityData : ScriptableObject
+{
+    [Header("Base Stats")]
+    public float moveSpeed = 5f;
+    public int maxHealth = 100;
+    public float baseDamage = 10f;
+    
+    [Header("Resource Stats")]
+    public float maxMana = 100f;
+    public float manaRegenRate = 5f;
+    
+    [Header("Abilities")]
+    public List<Ability> abilities = new List<Ability>();
+    
+    [Header("Combat")]
+    public float attackRange = 1.5f;
+    public float attackSpeed = 1f; // Attacks per second
+}
+</file>
+
+<file path="Player/EntityData/EntityData.cs.meta">
+fileFormatVersion: 2
+guid: 8841d71d9aa9d0d449c2bff596cde9b6
+</file>
+
+<file path="Player/EntityData/PlayerData.meta">
+fileFormatVersion: 2
+guid: 0607fbb7e68b42fbb93fa2320d7c6468
+timeCreated: 1765305624
+</file>
+
+<file path="Player/EntityData/PlayerData/BandithData.cs">
+using UnityEngine;
+public class BandithData : EntityData
+{
+    
+}
+</file>
+
+<file path="Player/EntityData/PlayerData/BandithData.cs.meta">
+fileFormatVersion: 2
+guid: 85e57f5af8474f3a9933c5268c39319d
+timeCreated: 1764782036
+</file>
+
+<file path="Player/EntityData/PlayerData/MageData.cs">
+public class MageData : EntityData
+{
+    public float manaPool = 100f;
+    public int spellSlots = 3;
+}
+</file>
+
+<file path="Player/EntityData/PlayerData/MageData.cs.meta">
+fileFormatVersion: 2
+guid: 9029d0cc1c204a3e8010486ac9d7c139
+timeCreated: 1763571153
+</file>
+
+<file path="Player/Health.cs">
+using UnityEngine;
+using UnityEngine.Events;
+
+public class Health : MonoBehaviour
+{
+    public int maxHealth = 100;
+    public int currentHealth;
+
+    public UnityEvent onDeath;
+
+    private void Awake()
+    {
+        currentHealth = maxHealth;
+    }
+
+    public void Initialize(int maxHp)
+    {
+        maxHealth = maxHp;
+        currentHealth = maxHp;
+    }
+
+    public void TakeDamage(int amount)
+    {
+        if (amount <= 0) return;
+
+        currentHealth -= amount;
+        if (currentHealth <= 0)
+        {
+            currentHealth = 0;
+            Die();
+        }
+    }
+
+    public void Heal(int amount)
+    {
+        if (amount <= 0) return;
+
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+    }
+
+    private void Die()
+    {
+        onDeath?.Invoke();
+        // Fürs Grundgerüst: einfach zerstören
+        Destroy(gameObject);
+    }
+}
+</file>
+
+<file path="Player/Health.cs.meta">
+fileFormatVersion: 2
+guid: 2e7e184a146e76b40bef80ac20522276
+</file>
+
+<file path="Player/PlayerCombatController.cs">
+// Player/PlayerCombatController.cs
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerCombatController : MonoBehaviour
+{
+    [System.Serializable]
+    public class AbilitySlot
+    {
+        public KeyCode activationKey;
+        public Ability ability;
+        public float currentCooldown;
+        public bool isActive;
+    }
+    
+    [SerializeField] private List<AbilitySlot> abilitySlots = new List<AbilitySlot>();
+    [SerializeField] private EntityData entityData;
+    
+    private PlayerController2D playerController;
+    private SpriteAnimator animator;
+    private Ability currentAbility;
+    
+    private void Awake()
+    {
+        playerController = GetComponent<PlayerController2D>();
+        animator = GetComponent<SpriteAnimator>();
+        
+        // Initialize from EntityData
+        if (entityData != null && entityData.abilities != null)
+        {
+            for (int i = 0; i < entityData.abilities.Count && i < 4; i++)
+            {
+                abilitySlots.Add(new AbilitySlot
+                {
+                    activationKey = KeyCode.Alpha1 + i,
+                    ability = entityData.abilities[i],
+                    currentCooldown = 0
+                });
+            }
+        }
+    }
+    
+    private void Update()
+    {
+        // Update cooldowns
+        for (int i = 0; i < abilitySlots.Count; i++)
+        {
+            if (abilitySlots[i].currentCooldown > 0)
+            {
+                abilitySlots[i].currentCooldown -= Time.deltaTime;
+            }
+        }
+        
+        // Check ability inputs
+        for (int i = 0; i < abilitySlots.Count; i++)
+        {
+            if (Input.GetKeyDown(abilitySlots[i].activationKey))
+            {
+                TryActivateAbility(i);
+            }
+        }
+        
+        // Mouse activation for aimed abilities
+        if (Input.GetMouseButtonDown(0)) // Left click
+        {
+            TryActivateAimedAbility(0);
+        }
+        
+        if (Input.GetMouseButtonDown(1)) // Right click
+        {
+            TryActivateAimedAbility(1);
+        }
+    }
+    
+    private void TryActivateAbility(int slotIndex)
+    {
+        if (slotIndex >= abilitySlots.Count) return;
+        
+        AbilitySlot slot = abilitySlots[slotIndex];
+        
+        if (slot.currentCooldown > 0 || slot.isActive) return;
+        if (!slot.ability.CanActivate(gameObject)) return;
+        
+        // Get aim direction
+        Vector2 aimDirection = playerController.GetAimDirection();
+        
+        // Trigger animation if specified
+        if (slot.ability.triggerAnimation != PlayerAnimState.Idle)
+        {
+            animator.Play(slot.ability.triggerAnimation);
+        }
+        
+        // Activate ability
+        slot.ability.Activate(gameObject, aimDirection);
+        slot.currentCooldown = slot.ability.cooldown;
+        slot.isActive = true;
+        
+        currentAbility = slot.ability;
+        
+        // Start cooldown timer
+        StartCoroutine(ResetAbilitySlot(slotIndex, slot.ability.cooldown));
+    }
+    
+    private void TryActivateAimedAbility(int slotIndex)
+    {
+        // Similar to above but with mouse aiming
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 direction = (mousePos - (Vector2)transform.position).normalized;
+        
+        // Update facing direction
+        playerController.SetAimDirection(direction);
+        
+        // Activate ability with precise direction
+        // ... rest of activation logic
+    }
+    
+    private System.Collections.IEnumerator ResetAbilitySlot(int index, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        abilitySlots[index].isActive = false;
+        
+        if (currentAbility != null)
+        {
+            currentAbility.Deactivate();
+            currentAbility = null;
+        }
+    }
+    
+    // Public method for animation events to trigger ability effects
+    public void OnAnimationTrigger(string abilityName)
+    {
+        // Can be called from animation events for precise timing
+        foreach (var slot in abilitySlots)
+        {
+            if (slot.ability.abilityName == abilityName && slot.isActive)
+            {
+                // Additional effect triggering
+            }
+        }
+    }
+}
+</file>
+
+<file path="Player/PlayerCombatController.cs.meta">
+fileFormatVersion: 2
+guid: c5a25a5a0b9746b4b033dd447c7f0fab
+timeCreated: 1765308899
+</file>
+
+<file path="Player/PlayerController2D.cs">
+using UnityEngine;
+
+public class PlayerController2D : EntityController2D
+{
+    [Header("Player Input")]
+    [SerializeField] private KeyCode attackKey = KeyCode.Space;
+    [SerializeField] private KeyCode[] abilityKeys = { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4 };
+    
+    private Camera mainCamera;
+    
+    protected override void Start()
+    {
+        base.Start();
+        mainCamera = Camera.main;
+        
+        // Player is always on team "Player"
+        gameObject.tag = "Player";
+        gameObject.layer = LayerMask.NameToLayer("Player");
+    }
+    
+    protected override void Update()
+    {
+        base.Update();
+        HandlePlayerInput();
+    }
+    
+    private void HandlePlayerInput()
+    {
+        // Movement input
+        moveInput.x = Input.GetAxisRaw("Horizontal");
+        moveInput.y = Input.GetAxisRaw("Vertical");
+        moveInput = moveInput.normalized;
+        
+        // Combat input
+        HandleCombatInput();
+    }
+    
+    protected override void HandleMovement()
+    {
+        if (currentState == EntityState.Dead) return;
+        
+        rb.linearVelocity = moveInput * entityData.moveSpeed;
+    }
+    
+    protected override void HandleCombatInput()
+    {
+        if (currentState == EntityState.Dead) return;
+        
+        // Basic attack
+        if (Input.GetKeyDown(attackKey) && attackCooldownTimer <= 0)
+        {
+            TryUseAbility(0, GetAimDirection()); // First ability is basic attack
+        }
+        
+        // Special abilities
+        for (int i = 0; i < Mathf.Min(abilityKeys.Length, equippedAbilities.Count); i++)
+        {
+            if (Input.GetKeyDown(abilityKeys[i]))
+            {
+                Vector2 aimDir = GetAimDirection();
+                if (equippedAbilities[i].requiresAiming)
+                {
+                    // Mouse aiming
+                    Vector2 mousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+                    aimDir = (mousePos - (Vector2)transform.position).normalized;
+                    LookAt(mousePos);
+                }
+                
+                TryUseAbility(i, aimDir);
+            }
+        }
+    }
+    
+    public override Vector2 GetAimDirection()
+    {
+        // Player can aim with mouse or stick
+        if (Input.GetAxisRaw("Mouse X") != 0 || Input.GetAxisRaw("Mouse Y") != 0)
+        {
+            Vector2 mousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            return (mousePos - (Vector2)transform.position).normalized;
+        }
+        
+        // Fallback to movement direction
+        return base.GetAimDirection();
+    }
+}
+</file>
+
+<file path="Player/PlayerController2D.cs.meta">
+fileFormatVersion: 2
+guid: 6c2e146d0c5fab74583e8a916e07f9e8
+</file>
+
+<file path="Player/PlayerPresets.meta">
+fileFormatVersion: 2
+guid: 43420fde51984ab094cb2d52028d43f5
+timeCreated: 1764794886
+</file>
+
+<file path="repomix-output.xml.meta">
+fileFormatVersion: 2
+guid: a611cb64b99dcdd48b3b7d8f512ec108
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant:
+</file>
+
+<file path="Terrain.meta">
+fileFormatVersion: 2
+guid: 44530c5005e16a140a47e04aa767c3c6
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant:
+</file>
+
+<file path="Terrain/TerrainGenerator.cs">
+using UnityEngine;
+using UnityEngine.Tilemaps;
+
+public class TerrainGenerator : MonoBehaviour
+{
+    public Tilemap groundMap;
+    public Tilemap waterMap;
+    public Tilemap stoneMap;
+
+    public Tile groundTile;
+    public Tile waterTile;
+    public Tile stoneTile;
+
+    public int width = 200;
+    public int height = 200;
+    public float scale = 0.1f;
+
+    void Start()
+    {
+        Generate();
+    }
+
+    void Generate()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                float n = Mathf.PerlinNoise(x * scale, y * scale);
+
+                if (n < 0.4f)
+                {
+                    waterMap.SetTile(new Vector3Int(x, y, 0), waterTile);
+                }
+                else if (n < 0.7f)
+                {
+                    groundMap.SetTile(new Vector3Int(x, y, 0), groundTile);
+                }
+                else
+                {
+                    stoneMap.SetTile(new Vector3Int(x, y, 0), stoneTile);
+                }
+            }
+        }
+    }
+}
+</file>
+
+<file path="Terrain/TerrainGenerator.cs.meta">
+fileFormatVersion: 2
+guid: f46a4e73f33cff545a597190e8a5b463
+</file>
+
+</files>
