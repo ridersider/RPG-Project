@@ -104,5 +104,6 @@ public enum PlayerAnimState
 {
     Idle,
     Run,
-    Attack
+    Attack,
+    Hit
 }

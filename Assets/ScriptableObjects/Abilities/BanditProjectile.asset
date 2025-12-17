@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef355cd1a2a04951b776996e773de6b8, type: 3}
+  m_Name: BanditProjectile
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileAbility
+  abilityName: 
+  cooldown: 1
+  manaCost: 10
+  icon: {fileID: 0}
+  triggerAnimation: 2
+  requiresAiming: 1
+  colliderPrefab: {fileID: 2486861327810492058, guid: 8e7e6dff9708c54479037d6c2baf2509, type: 3}
+  colliderDuration: 0.5
+  colliderOffset: {x: 0, y: 0}
+  projectilePrefab: {fileID: 5900482786679913813, guid: 2c7c92c0ba4831b4c882f708a81b3fb6, type: 3}
+  projectileSpeed: 10
+  damage: 20
