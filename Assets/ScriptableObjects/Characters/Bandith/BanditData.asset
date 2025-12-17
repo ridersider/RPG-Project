@@ -19,6 +19,7 @@ MonoBehaviour:
   manaRegenRate: 5
   abilities:
   - {fileID: 11400000, guid: e0b33710c38bca5409863f311fd7cd1c, type: 2}
+  - {fileID: 11400000, guid: 4e3bd496ef7bb6a4fb26112a7987f4c1, type: 2}
   attackRange: 1.5
   attackSpeed: 1
-  abilityKeys: 20000000320000003300000034000000
+  abilityKeys: 20000000710000003300000034000000

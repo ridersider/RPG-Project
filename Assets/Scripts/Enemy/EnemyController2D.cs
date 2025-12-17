@@ -128,6 +128,10 @@ public class EnemyController2D : EntityController2D
             case AIState.Fleeing:
                 HandleFleeState();
                 break;
+            
+            case AIState.Hit:
+                HandleHitState();
+                break;
         }
     }
     
@@ -157,6 +161,15 @@ public class EnemyController2D : EntityController2D
         }
         
         target = closestTarget;
+    }
+    
+    private void HandleHitState()
+    {
+        if (stateTimer <= 0)
+        {
+            // Return to previous state
+            SetAIState(AIState.Idle);
+        }
     }
     
     private void HandleIdleState()
@@ -257,6 +270,7 @@ public class EnemyController2D : EntityController2D
     private void SetWanderTarget()
     {
         wanderTarget = wanderCenter + Random.insideUnitCircle * wanderRadius;
+        wanderTarget.y /= 2; // Optional: limit vertical movement
     }
     
     private void SetAIState(AIState newState)
@@ -286,6 +300,10 @@ public class EnemyController2D : EntityController2D
                 
             case AIState.Fleeing:
                 stateTimer = 5f; // Flee duration
+                break;
+            
+            case AIState.Hit:
+                stateTimer = 1f; // Hit stun duration
                 break;
         }
     }
@@ -326,5 +344,6 @@ public enum AIState
     Chasing,
     Attacking,
     Fleeing,
-    Patrolling
+    Patrolling,
+    Hit
 }
