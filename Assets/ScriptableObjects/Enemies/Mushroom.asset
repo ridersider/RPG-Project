@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 878f3bee866a45fbac491d02173a3bf3, type: 3}
   m_Name: Mushroom
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
-  moveSpeed: 5
+  moveSpeed: 1
   maxHealth: 100
   baseDamage: 10
   maxMana: 100
@@ -21,11 +21,6 @@ MonoBehaviour:
   attackRange: 1.5
   attackSpeed: 1
   abilityKeys: 31000000320000003300000034000000
-  detectionRange: 10
-  attackRange: 2
-  chaseSpeedMultiplier: 1.2
-  isAggressive: 1
-  canWander: 1
   attackCooldown: 1
   attackDamage: 10
   usesAbilities: 0

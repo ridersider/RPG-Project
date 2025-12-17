@@ -9,6 +9,7 @@ public class MeleeAbility : Ability
     {
         TriggerOnAbilityStart();
         // Instantiate collider
+        BoxCollider2D colliderPrefab = Instantiate(this.colliderPrefab, owner.transform);
         colliderPrefab.enabled = true;
         
         // Activate collider on owner
@@ -21,9 +22,21 @@ public class MeleeAbility : Ability
                 dmgCollider.SetDuration(colliderDuration);
                 
                 // Event für Hit in DamageCollider setzen
-                dmgCollider.OnHit += (target) => TriggerOnAbilityHit(target);
+                dmgCollider.OnHit += (target) => TriggerOnAbilityHit(target, owner);
             }
         }
-        colliderPrefab.enabled = false;
+        // Collider nach der Dauer deaktivieren
+        owner.GetComponent<MonoBehaviour>().StartCoroutine(DisableColliderAfterDuration(colliderPrefab, colliderDuration));
+    }
+    
+    // Coroutine zum Deaktivieren des Colliders
+    private IEnumerator DisableColliderAfterDuration(BoxCollider2D collider, float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        if (collider != null)
+        {
+            collider.enabled = false;
+            Destroy(collider.gameObject); // Optional: Collider-Objekt zerstören
+        }
     }
 }

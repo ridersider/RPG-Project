@@ -206,6 +206,11 @@ public class EnemyController2D : EntityController2D
         {
             SetAIState(AIState.Idle);
         }
+        
+        if (stateTimer <= 0)
+        {
+            SetAIState(AIState.Idle);
+        }
     }
     
     private void HandleChaseState()

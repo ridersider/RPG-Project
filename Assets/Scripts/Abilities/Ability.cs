@@ -33,9 +33,23 @@ public abstract class Ability : ScriptableObject
         OnAbilityStart?.Invoke(this);
     }
     
-    protected virtual void TriggerOnAbilityHit(GameObject target = null)
+    protected virtual void TriggerOnAbilityHit(GameObject target = null, GameObject owner = null)
     {
         OnAbilityHit?.Invoke(this, target);
+        
+        if (target != null)
+        {
+            SpriteAnimator animator = target.GetComponent<SpriteAnimator>();
+            if (animator != null)
+            {
+                animator.Play(PlayerAnimState.Hit);
+            }
+            
+            if (owner != null)
+            {
+                owner.GetComponent<Health>().Heal(5);
+            }
+        }
     }
     
     protected virtual void TriggerOnAbilityEnd()

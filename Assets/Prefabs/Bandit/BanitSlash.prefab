@@ -91,7 +91,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ca2c37747864a8cac7dcadfbba5fba5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DamageCollider
-  owner: {fileID: 0}
+  owner: {fileID: 8548134696636804160, guid: 6bd3746f6f8794f498ff966bda417ebb, type: 3}
   targetLayers:
     serializedVersion: 2
     m_Bits: 24576
